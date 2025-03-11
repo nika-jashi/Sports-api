@@ -1,0 +1,11 @@
+#GIT
+.gitignore
+.git
+
+#DOCKER
+.docker
+
+#PYTHON
+.env_sample/
+.venv/
+venv/
