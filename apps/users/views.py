@@ -121,7 +121,7 @@ class UserChangePasswordView(APIView):
         return Response({"detail": "You successfully changed your password."}, status=status.HTTP_200_OK)
 
 
-@extend_schema(tags=["password_reset"])
+@extend_schema(tags=["PasswordReset"])
 class PasswordResetRequestEmailView(APIView):
     """View for user to request password reset by email verification, when user is not authenticated"""
     serializer_class = PasswordResetRequestEmailSerializer
@@ -143,7 +143,7 @@ class PasswordResetRequestEmailView(APIView):
         return Response({"detail": "There Was Problem Validating Data"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@extend_schema(tags=["password_reset"])
+@extend_schema(tags=["PasswordReset"])
 class EmailVerifyView(APIView):
     """ View for user to verify User by input of generated otp sent on email
        this view also generated JWT token for changing password afterward """
@@ -171,7 +171,7 @@ class EmailVerifyView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@extend_schema(tags=["password_reset"])
+@extend_schema(tags=["PasswordReset"])
 class PasswordResetConfirmView(APIView):
     """View for user to confirm new password after verifying email and otp from request"""
     serializer_class = PasswordResetConfirmSerializer

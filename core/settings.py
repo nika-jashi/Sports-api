@@ -20,6 +20,7 @@ ALLOWED_HOSTS = ['*']
 
 PROJECT_APPS = [
     'apps.users.apps.UsersConfig',
+    'apps.tournaments.apps.TournamentsConfig',
 ]
 
 THIRD_PARTY_APPS = [

@@ -55,7 +55,6 @@ class CustomUser(AbstractUser):
         error_messages={'unique': 'Email Already Exists'})
     first_name = models.CharField(max_length=32)
     last_name = models.CharField(max_length=32)
-    profile_picture = models.ImageField(upload_to=profile_picture_file_path)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
@@ -64,29 +63,33 @@ class CustomUser(AbstractUser):
 
     objects = CustomUserManager()
 
+    class Meta:
+        db_table = 'Users'
+
     def __str__(self):
         return self.email
 
 
 class CustomUserProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=32, null=True)
-    last_name = models.CharField(max_length=32, null=True)
     date_of_birth = models.DateField(null=True)
     bio = models.TextField(blank=True)
     profile_picture = models.ImageField(upload_to=profile_picture_file_path, null=True)
+
     GENDER_CHOICES = (
         ('U', _('Unknown')),
         ('M', _('Male')),
         ('F', _('Female')),
         ('O', _('Others')),
     )
-
     gender = models.CharField(
         choices=GENDER_CHOICES,
         default='U',  # Start with U (Unknown)
         null=True,
     )
 
+    class Meta:
+        db_table = 'UserProfiles'
+
     def __str__(self):
-        return f"{self.user.username}'s Profile"
+        return f"{self.user.email}'s Profile"
