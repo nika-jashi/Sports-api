@@ -53,6 +53,7 @@ class CustomUser(AbstractUser):
         max_length=255,
         unique=True,
         error_messages={'unique': 'Email Already Exists'})
+    username = None
     first_name = models.CharField(max_length=32)
     last_name = models.CharField(max_length=32)
     is_active = models.BooleanField(default=True)
