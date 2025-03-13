@@ -45,7 +45,7 @@ class TeamSerializer(serializers.ModelSerializer):
 
 
 class TeamMemberSerializer(serializers.ModelSerializer):
-    """ Team Members Serializer """
+    """ Team Members Serializer With All The Validations """
 
     class Meta:
         model = TeamMember
@@ -53,6 +53,32 @@ class TeamMemberSerializer(serializers.ModelSerializer):
         read_only_fields = ['member', 'team']
 
     def create(self, validated_data):
-        """ Create And Return A Team Member With Filled Information """
+        """ Create And Return A Team Member With Filled Information And Proper Validations """
+
+        team = validated_data.get('team')
+        member = validated_data.get('member')
+        current_team = Team.objects.filter(id=team.id).first()
+        members = TeamMember.objects.filter(team=current_team)
+        current_tournament = Tournament.objects.filter(id=team.tournament.id).first()
+        if current_tournament.team_size == 1:
+            raise serializers.ValidationError(
+                _(
+                    "Tournament Is Single Player")
+            )
+        if not current_tournament.is_active:
+            raise serializers.ValidationError(
+                _(
+                    "Tournament Is Not Active")
+            )
+        if str(members.count() + 1) >= current_tournament.team_size:
+            raise serializers.ValidationError(
+                _(
+                    "There Are No Spots Left In The Team")
+            )
+        if current_team.leader.id == member.id or members.contains(member):
+            raise serializers.ValidationError(
+                _(
+                    "You Are Already In The Team")
+            )
         instance = TeamMember.objects.create(**validated_data)
         return instance

@@ -1,11 +1,14 @@
+from typing import List
+import json
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.tournaments.models import Tournament, Team
+from apps.tournaments.models import Tournament, Team, TeamMember
 from apps.tournaments.serializers import TournamentSerializer, TeamSerializer, TeamMemberSerializer
+from apps.users.models import CustomUser
 
 
 @extend_schema(tags=["Tournament"],
@@ -96,3 +99,41 @@ class TeamMembersAdditionView(APIView):
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(tags=["Teams"],
+               responses={
+                   status.HTTP_201_CREATED: TeamMemberSerializer,
+                   status.HTTP_400_BAD_REQUEST: TeamMemberSerializer,
+               })
+class ShowTeamDetailsView(APIView):
+    """ View For Showing Teams Details """
+
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, team_id, *args, **kwargs) -> Response:
+        current_team = Team.objects.filter(id=team_id).first()
+
+        if not current_team:
+            return Response({"error": "Team not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        team_members = TeamMember.objects.filter(team=current_team).select_related("member")
+
+        data = {
+            'leader': {
+                'id': current_team.leader.id,
+                'first_name': current_team.leader.first_name,
+                'last_name': current_team.leader.last_name,
+                'email': current_team.leader.email,
+            },
+            'members': [
+                {
+                    'id': member.member.id,
+                    'first_name': member.member.first_name,
+                    'last_name': member.member.last_name,
+                    'email': member.member.email
+                }
+                for member in team_members
+            ],
+        }
+        return Response(data, status=status.HTTP_200_OK, content_type='application/json')

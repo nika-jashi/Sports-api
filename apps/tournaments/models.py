@@ -102,7 +102,7 @@ class TeamMember(models.Model):
     """ Model For Team who Participates """
 
     team = models.ForeignKey(Team, on_delete=models.SET_NULL, null=True)
-    member = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    member = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True)
 
     class Meta:
         unique_together = ('member', 'team')
