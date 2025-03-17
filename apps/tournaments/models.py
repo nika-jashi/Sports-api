@@ -110,3 +110,26 @@ class TeamMember(models.Model):
 
     def __str__(self):
         return f"{self.team.name} - {self.member.get_full_name()}"
+
+
+class Match(models.Model):
+    STATUS_CHOICES = [
+        ('scheduled', 'Scheduled'),
+        ('ongoing', 'Ongoing'),
+        ('completed', 'Completed'),
+    ]
+
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="matches")
+    home_team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="home_matches")
+    away_team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="away_matches")
+    home_score = models.IntegerField(null=True, blank=True)
+    away_score = models.IntegerField(null=True, blank=True)
+    match_date = models.DateTimeField(null=True, blank=True)
+    match_status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="scheduled")
+    metadata = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        unique_together = ('tournament', 'home_team', 'away_team')
+
+    def __str__(self):
+        return f"{self.home_team} vs {self.away_team} - {self.match_status}"

@@ -1,7 +1,7 @@
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from apps.tournaments.models import Tournament, Team, TeamMember
+from apps.tournaments.models import Tournament, Team, TeamMember, Match
 
 
 class TournamentSerializer(serializers.ModelSerializer):
@@ -81,4 +81,16 @@ class TeamMemberSerializer(serializers.ModelSerializer):
                     "You Are Already In The Team")
             )
         instance = TeamMember.objects.create(**validated_data)
+        return instance
+
+
+class MatchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Match
+        fields = ['tournament', 'home_team', 'away_team']
+        read_only_fields = ['tournament', 'home_team', 'away_team']
+
+    def create(self, validated_data):
+        """ Create And Return A Team With Filled Leader Information """
+        instance = Match.objects.create(**self.context['match_data'])
         return instance
