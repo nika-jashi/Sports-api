@@ -2,6 +2,7 @@ from typing import List
 import json
 
 from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -11,6 +12,7 @@ from rest_framework.views import APIView
 from apps.tournaments.models import Tournament, Team, TeamMember
 from apps.tournaments.serializers import TournamentSerializer, TeamSerializer, TeamMemberSerializer, MatchSerializer
 from apps.users.models import CustomUser
+from apps.utils.custom_permissions import HasValidCeleryAuth
 from apps.utils.generate_league import generate_unique_matches
 
 
@@ -85,8 +87,8 @@ class TeamCreationView(APIView):
 
 @extend_schema(tags=["Teams"],
                responses={
-                   status.HTTP_201_CREATED: TeamMemberSerializer,
-                   status.HTTP_400_BAD_REQUEST: TeamMemberSerializer,
+                   status.HTTP_201_CREATED,
+                   status.HTTP_400_BAD_REQUEST,
                })
 class TeamMembersAdditionView(APIView):
     """ View For Adding Member In To The Team """
@@ -164,11 +166,10 @@ class TeamMembersAdditionView(APIView):
 @extend_schema(tags=["Tournament"])
 class TournamentStartView(APIView):
     """ View For Starting A Tournament """
-
     serializer_class = MatchSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (HasValidCeleryAuth,)
 
-    def post(self, request, slug, *args, **kwargs) -> Response:
+    def get(self, request, slug, *args, **kwargs) -> Response:
         """ Start a tournament by generating and saving matches """
 
         current_tournament = get_object_or_404(Tournament, slug=slug)
@@ -181,8 +182,6 @@ class TournamentStartView(APIView):
 
         matches = generate_unique_matches(league_teams_data=teams)
 
-        print(f"Generated Matches: {matches}")
-
         created_matches = []
         for match in matches:
             match_data = {
@@ -190,13 +189,13 @@ class TournamentStartView(APIView):
                 'home_team': match['home'],
                 'away_team': match['away'],
             }
-            serializer = self.serializer_class(data=match_data,context={'match_data': match_data})
+            serializer = self.serializer_class(data=match_data, context={'match_data': match_data})
 
             if serializer.is_valid():
                 saved_match = serializer.save()
                 created_matches.append(saved_match)
             else:
-                print(serializer.errors)
+                return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             {"message": "Tournament started successfully!", "matches_created": len(created_matches)},

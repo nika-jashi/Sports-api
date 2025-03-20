@@ -2,6 +2,8 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from celery.schedules import crontab
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -30,10 +32,13 @@ THIRD_PARTY_APPS = [
     'rest_framework_swagger',
 
     'drf_spectacular',
+
+    'django_celery_beat',
 ]
 
 INSTALLED_APPS = [
                      'django.contrib.auth',
+                     'django.contrib.admin',
                      'django.contrib.contenttypes',
                      'django.contrib.sessions',
                      'django.contrib.messages',
@@ -160,4 +165,15 @@ SIMPLE_JWT = {
 
 SPECTACULAR_SETTINGS = {
     'COMPONENT_SPLIT_REQUEST': True
+}
+
+
+CELERY_BROKER_URL = "redis://redis:6379/0"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_BEAT_SCHEDULE = {
+    'generate-tournament-matches': {
+        'task': 'apps.tournaments.tasks.generate_tournaments',
+        'schedule': crontab(minute='0', hour='21', day_of_week='*', month_of_year='*')
+    },
 }

@@ -10,6 +10,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 urlpatterns = [
+    path('admin/', admin.site.urls),
     # urls for JWT tokens
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
@@ -17,8 +18,8 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     # application urls
-    path('user/', include('apps.users.urls')),
-    path('tournament/', include('apps.tournaments.urls')),
+    path('api/user/', include('apps.users.urls')),
+    path('api/tournament/', include('apps.tournaments.urls')),
 ]
 
 if settings.DEBUG:
