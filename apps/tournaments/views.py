@@ -1,19 +1,16 @@
-from typing import List
-import json
-
 from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.tournaments.models import Tournament, Team, TeamMember
-from apps.tournaments.serializers import TournamentSerializer, TeamSerializer, TeamMemberSerializer, MatchSerializer
-from apps.users.models import CustomUser
+from apps.tournaments.models import Tournament, Team, TeamMember, Match
+from apps.tournaments.serializers import TournamentSerializer, TeamSerializer, TeamMemberSerializer, MatchSerializer, \
+    MatchUpdateSerializer
 from apps.utils.custom_permissions import HasValidCeleryAuth
 from apps.utils.generate_league import generate_unique_matches
+from apps.utils.generate_elimination import generate_eliminations
 
 
 @extend_schema(tags=["Tournament"],
@@ -105,6 +102,14 @@ class TeamMembersAdditionView(APIView):
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
+@extend_schema(tags=["Teams"])
+class ShowAllTeamsInTournament(APIView):
+    """ View For Showing All Teams In Tournament """
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, tournament, *args, **kwargs) -> Response:
+        current_tournament_teams = Team.objects.filter(tournament__slug=tournament)
+        return Response(data=TeamSerializer(instance=current_tournament_teams, many=True).data, status=status.HTTP_200_OK)
 
 @extend_schema(tags=["Teams"],
                responses={
@@ -167,7 +172,7 @@ class TeamMembersAdditionView(APIView):
 class TournamentStartView(APIView):
     """ View For Starting A Tournament """
     serializer_class = MatchSerializer
-    permission_classes = (HasValidCeleryAuth,)
+    #permission_classes = (HasValidCeleryAuth,)
 
     def get(self, request, slug, *args, **kwargs) -> Response:
         """ Start a tournament by generating and saving matches """
@@ -179,8 +184,10 @@ class TournamentStartView(APIView):
         if len(teams) < 2:
             return Response({"error": "At least two teams are required to start a tournament."},
                             status=status.HTTP_400_BAD_REQUEST)
-
-        matches = generate_unique_matches(league_teams_data=teams)
+        if current_tournament.format == 'single_elimination' or current_tournament.format == 'double_elimination':
+            matches = generate_eliminations(league_teams_data=teams)
+        else:
+            matches = generate_unique_matches(league_teams_data=teams)
 
         created_matches = []
         for match in matches:
@@ -201,6 +208,21 @@ class TournamentStartView(APIView):
             {"message": "Tournament started successfully!", "matches_created": len(created_matches)},
             status=status.HTTP_201_CREATED
         )
+
+
+class UpdateMatches(APIView):
+    """ View For Updating Matches """
+    serializer_class = MatchUpdateSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, tournament, match_pk, *args, **kwargs) -> Response:
+        current_match = Match.objects.filter(tournament__slug=tournament, id=match_pk).first()
+        serializer = MatchUpdateSerializer(instance=current_match, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema(tags=["Tournament"])

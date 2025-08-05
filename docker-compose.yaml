@@ -16,9 +16,11 @@ services:
       - "6379:6379"
     expose:
       - "6379"
-  sport_db:
+
+  db:
     image: postgres:16-alpine
     restart: always
+    container_name: sport_db_postgres
     volumes:
       - data:/var/lib/postgresql/data
     env_file:
@@ -30,6 +32,23 @@ services:
       interval: 5s
       timeout: 5s
       retries: 3
+
+  mongodb:
+    image: mongo:6.0
+    container_name: sport_manager_mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.adminCommand(\"ping\").ok' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   sport_web_api:
     image: sport_manager_api:latest
     build:
@@ -44,12 +63,14 @@ services:
     env_file:
       - .env
     depends_on:
-      sport_db:
-        condition:
-          service_healthy
+      db:
+        condition: service_healthy
       redis:
-        condition:
-          service_healthy
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+
 volumes:
   data:
   redis_data:
+  mongo_data:

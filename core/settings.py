@@ -2,8 +2,10 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from dotenv import load_dotenv
 from celery.schedules import crontab
 
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -14,7 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG_VALUE')
+DEBUG = os.environ.get("DEBUG")
 
 ALLOWED_HOSTS = ['*']
 
@@ -177,3 +179,11 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='0', hour='21', day_of_week='*', month_of_year='*')
     },
 }
+BASE_URL = os.environ.get('BASE_URL')
+
+MONGO = {
+    "DB_NAME": os.environ.get('DB_NAME'),
+    "URI": os.environ.get('URI'),
+}
+
+DJANGO_SETTINGS_MODULE = 'core.settings'

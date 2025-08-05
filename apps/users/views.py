@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from drf_spectacular.utils import extend_schema
@@ -150,9 +152,7 @@ class EmailVerifyView(APIView):
     serializer_class = OTPValidationSerializer
 
     def post(self, request):
-        data = {
-            'Success': 'Successful'
-        }
+        data: dict = {}
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid(raise_exception=True):
             email = serializer.validated_data.get("email")
@@ -162,11 +162,14 @@ class EmailVerifyView(APIView):
                 return Response({"detail": "User does not exist."}, status=status.HTTP_400_BAD_REQUEST)
 
             access = AccessToken.for_user(user=user)
+            access.set_exp(lifetime=timedelta(minutes=2))
             otp = serializer.validated_data.get('OTP')
             if len(otp) == 6:
-                data = {
-                    'access': str(access),
-                }
+                data['access'] = str(access)
+            elif len(otp) == 5:
+                data['Success'] = 'Successful'
+            else:
+                data['Access Denied'] = 'Access Denied'
             return Response(data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

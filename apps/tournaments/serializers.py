@@ -94,3 +94,11 @@ class MatchSerializer(serializers.ModelSerializer):
         """ Create And Return A Team With Filled Leader Information """
         instance = Match.objects.create(**self.context['match_data'])
         return instance
+
+
+class MatchUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Match
+        fields = ['tournament', 'home_team', 'away_team', 'metadata', 'home_score', 'away_score', 'match_date',
+                  'match_status']
+        read_only_fields = ['tournament', 'home_team', 'away_team']

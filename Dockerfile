@@ -18,7 +18,7 @@ ENV PATH="/py/bin:$PATH"
 
 USER root
 
-RUN sed -i 's/\r//' /app/scripts/docker-entrypoint.sh
+RUN sed -i 's/\r$//' /app/scripts/docker-entrypoint.sh
 RUN chmod +x /app/scripts/docker-entrypoint.sh
 
 ENTRYPOINT ["/bin/bash", "/app/scripts/docker-entrypoint.sh"]
