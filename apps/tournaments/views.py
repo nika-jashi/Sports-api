@@ -1,3 +1,6 @@
+from bson import json_util
+import json
+
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
@@ -11,6 +14,8 @@ from apps.tournaments.serializers import TournamentSerializer, TeamSerializer, T
 from apps.utils.custom_permissions import HasValidCeleryAuth
 from apps.utils.generate_league import generate_unique_matches
 from apps.utils.generate_elimination import generate_eliminations
+from apps.utils.initialize_standings import initialize_standings_for_league
+from core.mongo_client import mongo
 
 
 @extend_schema(tags=["Tournament"],
@@ -168,7 +173,11 @@ class TeamMembersAdditionView(APIView):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-@extend_schema(tags=["Tournament"])
+@extend_schema(tags=["Matches"],
+               responses={
+                   status.HTTP_201_CREATED: MatchSerializer,
+                   status.HTTP_400_BAD_REQUEST: MatchSerializer,
+               })
 class TournamentStartView(APIView):
     """ View For Starting A Tournament """
     serializer_class = MatchSerializer
@@ -187,6 +196,7 @@ class TournamentStartView(APIView):
         if current_tournament.format == 'single_elimination' or current_tournament.format == 'double_elimination':
             matches = generate_eliminations(league_teams_data=teams)
         else:
+            initialize_standings_for_league(current_tournament)
             matches = generate_unique_matches(league_teams_data=teams)
 
         created_matches = []
@@ -209,8 +219,8 @@ class TournamentStartView(APIView):
             status=status.HTTP_201_CREATED
         )
 
-
-class UpdateMatches(APIView):
+@extend_schema(tags=["Tournament"])
+class UpdateMatchesView(APIView):
     """ View For Updating Matches """
     serializer_class = MatchUpdateSerializer
     permission_classes = (IsAuthenticated,)
@@ -235,3 +245,15 @@ class AllTournamentView(APIView):
         tournaments = Tournament.objects.all().order_by('-created_at')
         all_tournaments = TournamentSerializer(instance=tournaments, many=True)
         return Response(data=all_tournaments.data, status=status.HTTP_200_OK)
+
+@extend_schema(tags=["Tournament"])
+class TournamentStandingsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, tournament, *args, **kwargs) -> Response:
+        current_tournament = Tournament.objects.get(slug=tournament)
+        standings = mongo("standings").find_one({"tournament_id": current_tournament.id})
+
+        standings_json = json.loads(json_util.dumps(standings))
+
+        return Response(data=standings_json, status=status.HTTP_200_OK)

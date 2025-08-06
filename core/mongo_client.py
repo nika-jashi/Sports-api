@@ -4,7 +4,7 @@ from pymongo import MongoClient
 from django.conf import settings
 from functools import lru_cache
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
+#os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 
 @lru_cache()
 def _get_client():

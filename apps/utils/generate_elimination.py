@@ -20,4 +20,4 @@ def generate_eliminations(league_teams_data):
 # def create_new_brackets_after_wins(started_tournament_teams_data):
 
 
-print(generate_eliminations(league_teams_data=["team1", "team2", "team3", "team4", "team5", "team6", "team7", "team8"]))
+#print(generate_eliminations(league_teams_data=["team1", "team2", "team3", "team4", "team5", "team6", "team7", "team8"]))

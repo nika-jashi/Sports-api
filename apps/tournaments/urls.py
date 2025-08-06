@@ -9,7 +9,8 @@ from apps.tournaments.views import (
     TournamentStartView,
     AllTournamentView,
     ShowAllTeamsInTournament,
-    UpdateMatches,
+    UpdateMatchesView,
+    TournamentStandingsView,
 
 )
 
@@ -24,5 +25,6 @@ urlpatterns = [
     path('<str:tournament>/team/all', ShowAllTeamsInTournament.as_view(), name='all-teams-in-tournament'),
     path('team/<int:team_id>/team-member/add', TeamMembersAdditionView.as_view(), name='team-member-add'),
     path('team/<int:team_id>/details/', ShowTeamDetailsView.as_view(), name='team-details'),
-    path('<str:tournament>/match/<int:match_pk>/update', UpdateMatches.as_view(), name='match-update'),
+    path('<str:tournament>/match/<int:match_pk>/update', UpdateMatchesView.as_view(), name='match-update'),
+    path('<str:tournament>/standings/', TournamentStandingsView.as_view(), name='standings'),
 ]
