@@ -9,3 +9,10 @@
 .env_sample/
 .venv/
 venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Editors
+.vscode/
+.idea/

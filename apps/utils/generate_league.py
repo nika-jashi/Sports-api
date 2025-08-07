@@ -1,6 +1,6 @@
 import itertools
 
-def generate_unique_matches(league_teams_data: list) -> list:
+def generate_unique_league_matches(league_teams_data: list) -> list:
     """ Generate unique home/away matches for league format """
 
     first_meeting_matches = [{"home": i[0], "away": i[1]} for i in itertools.combinations(league_teams_data, 2)]

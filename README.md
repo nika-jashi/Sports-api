@@ -15,13 +15,17 @@ TBA
 
 ## Installation - Requirements
 
-* docker >= 24.0.6
+* docker >= 28.0.4
   ```docker --version```
-* docker-compose >= v2.23.0
+* docker-compose >= v2.34.0
   ```docker-compose --version```
 * python >= 3.10
   ```This is the case when you start the project without docker-compose```
 * PostgreSQL >= 16
+  ```this is the case when you start the project without docker-compose```
+* Redis >= 7.0.2
+  ```this is the case when you start the project without docker-compose```
+* MongoDB >= 6.0.0
   ```this is the case when you start the project without docker-compose```
 
 ### Development Environment Set Up
@@ -37,7 +41,16 @@ TBA
   #Case When Your OS Is Windows
   venv\Scripts\activate  #Optional When It Does Not Work Search For <activate.bat> File
 ```
-
+#### Fill ENV File
+```
+# ENVIRONMENT VARIABLES FOR DATABASE
+# ENVIRONMENT VARIABLES FOR WEB APPLICATION
+# ENVIROMENT VARIABLES FOR REDIS DB
+# ENVIROMENT VARIABLES FOR EMAIL
+# ENVIROMENT VARIABLES FOR SOCIAL AUTH
+# ENVIRONMENT VARIABLES FOR PROJECT
+# ENVIRONMENT VARIABLES FOR MONGODB
+```
 #### Initialize database
 
 ```bash

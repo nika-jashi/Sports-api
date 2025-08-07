@@ -12,7 +12,7 @@ from apps.tournaments.models import Tournament, Team, TeamMember, Match
 from apps.tournaments.serializers import TournamentSerializer, TeamSerializer, TeamMemberSerializer, MatchSerializer, \
     MatchUpdateSerializer
 from apps.utils.custom_permissions import HasValidCeleryAuth
-from apps.utils.generate_league import generate_unique_matches
+from apps.utils.generate_league import generate_unique_league_matches
 from apps.utils.generate_elimination import generate_eliminations
 from apps.utils.initialize_standings import initialize_standings_for_league
 from core.mongo_client import mongo
@@ -197,7 +197,7 @@ class TournamentStartView(APIView):
             matches = generate_eliminations(league_teams_data=teams)
         else:
             initialize_standings_for_league(current_tournament)
-            matches = generate_unique_matches(league_teams_data=teams)
+            matches = generate_unique_league_matches(league_teams_data=teams)
 
         created_matches = []
         for match in matches:
@@ -257,3 +257,11 @@ class TournamentStandingsView(APIView):
         standings_json = json.loads(json_util.dumps(standings))
 
         return Response(data=standings_json, status=status.HTTP_200_OK)
+
+@extend_schema(tags=["Matches"])
+class TournamentMatchesView(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request, tournament, *args, **kwargs) -> Response:
+        current_tournament = Tournament.objects.get(slug=tournament)
+        matches = MatchUpdateSerializer(instance=current_tournament.matches.all(), many=True)
+        return Response(data=matches.data, status=status.HTTP_200_OK)

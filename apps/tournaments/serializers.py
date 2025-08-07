@@ -99,6 +99,6 @@ class MatchSerializer(serializers.ModelSerializer):
 class MatchUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Match
-        fields = ['tournament', 'home_team', 'away_team', 'metadata', 'home_score', 'away_score', 'match_date',
+        fields = ['id','tournament', 'home_team', 'away_team', 'metadata', 'home_score', 'away_score', 'match_date',
                   'match_status']
-        read_only_fields = ['tournament', 'home_team', 'away_team']
+        read_only_fields = ['id','tournament', 'home_team', 'away_team']
