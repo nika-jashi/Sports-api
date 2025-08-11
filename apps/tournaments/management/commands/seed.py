@@ -18,6 +18,10 @@ class Command(BaseCommand):
             {'email': 'bob@example.com', 'first_name': 'Bob', 'last_name': 'Johnson'},
             {'email': 'carol@example.com', 'first_name': 'Carol', 'last_name': 'Williams'},
             {'email': 'dave@example.com', 'first_name': 'Dave', 'last_name': 'Brown'},
+            {'email': 'john@example.com', 'first_name': 'john', 'last_name': 'doe'},
+            {'email': 'ana@example.com', 'first_name': 'ana', 'last_name': 'khvedelidze'},
+            {'email': 'ozzy@example.com', 'first_name': 'ozzy', 'last_name': 'osbourne'},
+            {'email': 'kaxa@example.com', 'first_name': 'kaxa', 'last_name': 'meladze'},
         ]
         users = []
 

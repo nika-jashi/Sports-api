@@ -34,7 +34,7 @@ services:
       retries: 3
 
   mongodb:
-    image: mongo:6.0.1-alpine
+    image: mongo:6.0
     container_name: sport_manager_mongodb
     restart: always
     ports:

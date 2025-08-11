@@ -120,6 +120,7 @@ class Match(models.Model):
     ]
 
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="matches")
+    match_number = models.IntegerField(null=True,blank=True)
     home_team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="home_matches")
     away_team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name="away_matches")
     home_score = models.IntegerField(null=True, blank=True)
@@ -127,6 +128,7 @@ class Match(models.Model):
     match_date = models.DateTimeField(null=True, blank=True)
     match_status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="scheduled")
     metadata = models.JSONField(default=dict, blank=True)
+    round_number = models.PositiveIntegerField(default=1)
 
     class Meta:
         unique_together = ('tournament', 'home_team', 'away_team')

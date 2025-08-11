@@ -87,7 +87,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 class MatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Match
-        fields = ['tournament', 'home_team', 'away_team']
+        fields = ['tournament', 'match_number', 'home_team', 'away_team','round_number']
         read_only_fields = ['tournament', 'home_team', 'away_team']
 
     def create(self, validated_data):
@@ -99,6 +99,7 @@ class MatchSerializer(serializers.ModelSerializer):
 class MatchUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Match
-        fields = ['id','tournament', 'home_team', 'away_team', 'metadata', 'home_score', 'away_score', 'match_date',
+        fields = ['id', 'tournament', 'match_number', 'home_team', 'away_team', 'metadata', 'home_score', 'away_score',
+                  'match_date',
                   'match_status']
-        read_only_fields = ['id','tournament', 'home_team', 'away_team']
+        read_only_fields = ['id', 'match_number', 'tournament', 'home_team', 'away_team']

@@ -107,6 +107,7 @@ class TeamMembersAdditionView(APIView):
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
+
 @extend_schema(tags=["Teams"])
 class ShowAllTeamsInTournament(APIView):
     """ View For Showing All Teams In Tournament """
@@ -114,7 +115,9 @@ class ShowAllTeamsInTournament(APIView):
 
     def get(self, request, tournament, *args, **kwargs) -> Response:
         current_tournament_teams = Team.objects.filter(tournament__slug=tournament)
-        return Response(data=TeamSerializer(instance=current_tournament_teams, many=True).data, status=status.HTTP_200_OK)
+        return Response(data=TeamSerializer(instance=current_tournament_teams, many=True).data,
+                        status=status.HTTP_200_OK)
+
 
 @extend_schema(tags=["Teams"],
                responses={
@@ -181,7 +184,8 @@ class TeamMembersAdditionView(APIView):
 class TournamentStartView(APIView):
     """ View For Starting A Tournament """
     serializer_class = MatchSerializer
-    #permission_classes = (HasValidCeleryAuth,)
+
+    # permission_classes = (HasValidCeleryAuth,)
 
     def get(self, request, slug, *args, **kwargs) -> Response:
         """ Start a tournament by generating and saving matches """
@@ -193,6 +197,9 @@ class TournamentStartView(APIView):
         if len(teams) < 2:
             return Response({"error": "At least two teams are required to start a tournament."},
                             status=status.HTTP_400_BAD_REQUEST)
+        if Match.objects.filter(tournament=current_tournament).exists():
+            return Response({"error": "Tournament Has Already Started."},status=status.HTTP_400_BAD_REQUEST)
+
         if current_tournament.format == 'single_elimination' or current_tournament.format == 'double_elimination':
             matches = generate_eliminations(league_teams_data=teams)
         else:
@@ -205,6 +212,7 @@ class TournamentStartView(APIView):
                 'tournament': current_tournament,
                 'home_team': match['home'],
                 'away_team': match['away'],
+                'match_number': match['match_number'],
             }
             serializer = self.serializer_class(data=match_data, context={'match_data': match_data})
 
@@ -219,6 +227,7 @@ class TournamentStartView(APIView):
             status=status.HTTP_201_CREATED
         )
 
+
 @extend_schema(tags=["Tournament"])
 class UpdateMatchesView(APIView):
     """ View For Updating Matches """
@@ -226,7 +235,8 @@ class UpdateMatchesView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, tournament, match_pk, *args, **kwargs) -> Response:
-        current_match = Match.objects.filter(tournament__slug=tournament, id=match_pk).first()
+        current_match = Match.objects.filter(tournament__slug=tournament, pk=match_pk).first()
+        print(current_match)
         serializer = MatchUpdateSerializer(instance=current_match, data=request.data, partial=True)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
@@ -246,6 +256,7 @@ class AllTournamentView(APIView):
         all_tournaments = TournamentSerializer(instance=tournaments, many=True)
         return Response(data=all_tournaments.data, status=status.HTTP_200_OK)
 
+
 @extend_schema(tags=["Tournament"])
 class TournamentStandingsView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -258,9 +269,11 @@ class TournamentStandingsView(APIView):
 
         return Response(data=standings_json, status=status.HTTP_200_OK)
 
+
 @extend_schema(tags=["Matches"])
 class TournamentMatchesView(APIView):
     permission_classes = (IsAuthenticated,)
+
     def get(self, request, tournament, *args, **kwargs) -> Response:
         current_tournament = Tournament.objects.get(slug=tournament)
         matches = MatchUpdateSerializer(instance=current_tournament.matches.all(), many=True)
