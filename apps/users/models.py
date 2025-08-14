@@ -129,4 +129,4 @@ class Achievement(models.Model):
         ordering = ['category', 'title']
 
     def __str__(self):
-        return f"{self.title} ({self.code})"
+        return f"{self.title} ({self.slug_code})"

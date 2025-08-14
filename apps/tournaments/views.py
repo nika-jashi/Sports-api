@@ -12,7 +12,6 @@ from apps.tournaments.models import Tournament, Team, TeamMember, Match
 from apps.tournaments.serializers import TournamentSerializer, TeamSerializer, TeamMemberSerializer, MatchSerializer, \
     MatchUpdateSerializer
 from apps.utils.custom_permissions import HasValidCeleryAuth
-from apps.utils.db_queries import collect_first_timer_teams
 from apps.utils.generate_league import generate_unique_league_matches
 from apps.utils.generate_elimination import generate_eliminations
 from apps.utils.initialize_standings import initialize_standings_for_league
@@ -66,11 +65,7 @@ class TournamentDetailsView(APIView):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-@extend_schema(tags=["Teams"],
-               responses={
-                   status.HTTP_201_CREATED: TeamSerializer,
-                   status.HTTP_400_BAD_REQUEST: TeamSerializer,
-               })
+@extend_schema(tags=["Teams"])
 class TeamCreationView(APIView):
     """ View For Creating Team With A Leader """
     serializer_class = TeamSerializer
@@ -117,11 +112,7 @@ class ShowAllTeamsInTournament(APIView):
                         status=status.HTTP_200_OK)
 
 
-@extend_schema(tags=["Teams"],
-               responses={
-                   status.HTTP_201_CREATED: TeamMemberSerializer,
-                   status.HTTP_400_BAD_REQUEST: TeamMemberSerializer,
-               })
+@extend_schema(tags=["Teams"])
 class ShowTeamDetailsView(APIView):
     """ View For Showing Teams Details """
 
@@ -155,17 +146,13 @@ class ShowTeamDetailsView(APIView):
         return Response(data, status=status.HTTP_200_OK, content_type='application/json')
 
 
-@extend_schema(tags=["Teams"],
-               responses={
-                   status.HTTP_201_CREATED: TeamMemberSerializer,
-                   status.HTTP_400_BAD_REQUEST: TeamMemberSerializer,
-               })
-class TeamMembersAdditionView(APIView):
+@extend_schema(tags=["Teams"])
+class TeamMembersDeleteView(APIView):
     """ View For Removing Member From The Team """
 
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request, team_id, member_id, *args, **kwargs) -> Response:
+    def delete(self, request, team_id, member_id, *args, **kwargs) -> Response:
         current_team = Team.objects.filter(leader=request.user, id=team_id).first()
         if current_team.leader is not None and current_team.is_active:
             TeamMember.objects.filter(team=current_team, member_id=member_id).first().delete()
@@ -174,11 +161,7 @@ class TeamMembersAdditionView(APIView):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-@extend_schema(tags=["Matches"],
-               responses={
-                   status.HTTP_201_CREATED: MatchSerializer,
-                   status.HTTP_400_BAD_REQUEST: MatchSerializer,
-               })
+@extend_schema(tags=["Matches"])
 class TournamentStartView(APIView):
     """ View For Starting A Tournament """
     serializer_class = MatchSerializer
@@ -232,7 +215,7 @@ class UpdateMatchesView(APIView):
     serializer_class = MatchUpdateSerializer
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request, tournament, match_pk, *args, **kwargs) -> Response:
+    def patch(self, request, tournament, match_pk, *args, **kwargs) -> Response:
         current_match = Match.objects.filter(tournament__slug=tournament, pk=match_pk).first()
         print(current_match)
         serializer = MatchUpdateSerializer(instance=current_match, data=request.data, partial=True)

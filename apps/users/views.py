@@ -17,11 +17,12 @@ from apps.users.serializers import (
     UserChangePasswordSerializer,
     PasswordResetRequestEmailSerializer,
     OTPValidationSerializer,
-    PasswordResetConfirmSerializer, AddAchievementToUserSerializer)
-from apps.utils.db_queries import check_user_exists
+    PasswordResetConfirmSerializer, AchievementForUserSerializer)
+from apps.utils.db_queries import check_user_exists, get_all_current_users_achievements
 from apps.utils.email_sender import SendEmail
 from apps.utils.email_html_templates import email_verify, password_reset
 from apps.utils.otp_generator import OTP_generator
+from core.mongo_client import mongo
 
 
 @extend_schema(tags=["Auth"],
@@ -189,9 +190,12 @@ class PasswordResetConfirmView(APIView):
 
         return Response({"detail": "You successfully changed your password!"}, status=status.HTTP_200_OK)
 
+
 @extend_schema(tags=["Achievements"])
-class AddAchievementToUserView(APIView):
-    serializer_class = AddAchievementToUserSerializer
+class AchievementUsersView(APIView):
+    """View for user to add achievement to user"""
+    serializer_class = AchievementForUserSerializer
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs) -> Response:
         serializer = self.serializer_class(data=request.data)
@@ -199,3 +203,34 @@ class AddAchievementToUserView(APIView):
             serializer.save()
             return Response(status=status.HTTP_201_CREATED)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DeleteAchievementUsersView(APIView):
+    serializer_class = AchievementForUserSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def delete(self, request, *args, **kwargs) -> Response:
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            user_id = serializer.validated_data["user_id"]
+            achievement_id = serializer.validated_data["achievement_id"]
+
+            result = mongo("achievements").delete_one(
+                {"user_id": user_id, "achievement_id": achievement_id}
+            )
+
+            if result.deleted_count > 0:
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response({"detail": "Achievement not found for this user"}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(tags=["Achievements"])
+class GetAllUsersAchievementsView(APIView):
+    """View for getting all users achievements"""
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, user_id, *args, **kwargs) -> Response:
+        achievements = get_all_current_users_achievements(user_id=user_id)
+        return Response(data=achievements, status=status.HTTP_201_CREATED)

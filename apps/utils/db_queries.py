@@ -1,5 +1,11 @@
+import json
+
+from bson import json_util
+from django.db.models import QuerySet
+
 from apps.tournaments.models import Tournament
 from apps.users.models import CustomUser, Achievement
+from core.mongo_client import mongo
 
 
 def check_user_exists(uid=None, email=None, username=None) -> bool:
@@ -28,3 +34,24 @@ def collect_first_timer_teams(tournament: Tournament) -> dict:
     )
 
     return {user.id: user.email for user in first_timers}
+
+def get_all_current_users_achievements(user_id:int) -> dict:
+    achievements = {
+        'user': user_id,
+        'total_points': 0,
+        'achievements': [
+
+        ],
+    }
+    achievements_queryset = mongo("achievements").find({"user_id": user_id})
+    for achievement in json.loads(json_util.dumps(achievements_queryset)):
+        users_achievements = Achievement.objects.get(slug_code=achievement['achievement_id'])
+        achievements['achievements'].append({
+            "slug_code": users_achievements.slug_code,
+            "title": users_achievements.title,
+            "description": users_achievements.description,
+            "points": users_achievements.points,
+            "date_achieved": achievement['date_achieved'],
+        }),
+        achievements['total_points'] += users_achievements.points
+    return achievements

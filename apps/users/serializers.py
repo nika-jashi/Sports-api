@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 
 from rest_framework import serializers
 
+from apps.users.models import Achievement
 from apps.utils.custom_validators import (does_not_contains_whitespace,
                                           contains_uppercase,
                                           contains_digits,
@@ -174,12 +175,17 @@ class PasswordResetConfirmSerializer(serializers.Serializer):  # noqa
         return instance
 
 
-class AddAchievementToUserSerializer(serializers.Serializer):
+class AchievementForUserSerializer(serializers.Serializer):
+    """Serializer for user to add achievement to user With Some Validations Included"""
     user_id = serializers.IntegerField()
     achievement_id = serializers.CharField()
 
     def create(self, validated_data):
-        print("we are in create")
+
+        current_achievement = Achievement.objects.filter(slug_code=validated_data.get('achievement_id')).first()
+        if not current_achievement or not current_achievement.is_active:
+            raise serializers.ValidationError({"detail": "Either Achievement Does Not Exists Or It Is Not Active"})
+
         doc = {
             "user_id": validated_data["user_id"],
             "achievement_id": validated_data["achievement_id"],
