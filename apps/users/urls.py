@@ -4,7 +4,7 @@ from apps.users.views import (
     UserRegistrationView,
     UserLoginView,
     UserProfileView,
-    UserChangePasswordView, PasswordResetRequestEmailView, EmailVerifyView, PasswordResetConfirmView
+    UserChangePasswordView, PasswordResetRequestEmailView, EmailVerifyView, PasswordResetConfirmView,AddAchievementToUserView
 )
 
 app_name = 'users'
@@ -18,4 +18,6 @@ urlpatterns = [
     path('reset-password/', PasswordResetRequestEmailView.as_view(), name='reset-password'),
     path('reset-password/verify/', EmailVerifyView.as_view(), name='reset-password-verify'),
     path('reset-password/confirm/', PasswordResetConfirmView.as_view(), name='reset-password-confirm'),
+    path('achievements/add/', AddAchievementToUserView.as_view(), name='add-achievement-to-user'),
+
 ]

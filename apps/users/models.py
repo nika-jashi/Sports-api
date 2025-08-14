@@ -94,3 +94,39 @@ class CustomUserProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.email}'s Profile"
+
+
+def achievement_icon_upload_path(instance, filename):
+    """Generate file path for achievement icons"""
+    ext = filename.split('.')[-1]
+    filename = f"{uuid.uuid4()}.{ext}"
+    return f"uploads/achievements/{filename}"
+
+
+class Achievement(models.Model):
+    """Static achievement template"""
+    CATEGORY_CHOICES = [
+        ('tournament', 'Tournament'),
+        ('match', 'Match'),
+        ('team', 'Team'),
+        ('personal', 'Personal'),
+    ]
+
+    slug_code = models.SlugField(
+        max_length=50,
+        unique=True,
+        help_text="Unique code for internal reference (e.g., 'win_first_match')"
+    )
+    title = models.CharField(max_length=100, unique=True)
+    description = models.TextField()
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='personal')
+    points = models.PositiveIntegerField(default=0)
+    icon = models.ImageField(upload_to=achievement_icon_upload_path, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'Achievements'
+        ordering = ['category', 'title']
+
+    def __str__(self):
+        return f"{self.title} ({self.code})"

@@ -1,8 +1,9 @@
+import random
 from datetime import date, timedelta
 
 from django.core.management.base import BaseCommand
 
-from apps.users.models import CustomUser, CustomUserProfile
+from apps.users.models import CustomUser, CustomUserProfile, Achievement
 from apps.tournaments.models import Tournament, Team, TeamMember
 
 
@@ -12,7 +13,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.stdout.write(self.style.NOTICE("Seeding initial data..."))
 
-        # 1. Create 4 users
+        # 1. Create 8 users
         users_data = [
             {'email': 'alice@example.com', 'first_name': 'Alice', 'last_name': 'Smith'},
             {'email': 'bob@example.com', 'first_name': 'Bob', 'last_name': 'Johnson'},
@@ -88,7 +89,13 @@ class Command(BaseCommand):
 
         # 3. Create Teams (one for each user per tournament)
         for tournament in tournaments:
-            for user in users:
+            # Decide which users to assign
+            if getattr(tournament, 'type', '').lower() == 'league':
+                assigned_users = random.sample(users, min(4, len(users)))
+            else:
+                assigned_users = users
+
+            for user in assigned_users:
                 team_name = f"{user.first_name}'s Team"
                 team, created = Team.objects.get_or_create(
                     tournament=tournament,
@@ -97,5 +104,17 @@ class Command(BaseCommand):
                 )
                 TeamMember.objects.get_or_create(team=team, member=user)
                 self.stdout.write(f"Assigned {user.email} to {tournament.name}")
-
+        # 4. Create Achievements
+        print("Seeding achievement templates...")
+        templates = [
+            {"slug_code": "FIRST_WIN", "title": "First Victory", "description": "Win your first tournament", "points": 10},
+            {"slug_code": "CHAMPION", "title": "Champion", "description": "Win 5 tournaments", "points": 50},
+            {"slug_code": "MARATHON", "title": "Marathon Player", "description": "Participate in 20 tournaments", "points": 20},
+            {"slug_code": "STREAK_3", "title": "Winning Streak", "description": "Win 3 tournaments in a row", "points": 30},
+            {"slug_code": "STARTER", "title": "First Steps", "description": "Participate in a tournament", "points": 5},
+            {"slug_code": "LUCKY", "title": "First Time Luck", "description": "Win Your First Match", "points": 5},
+        ]
+        for t in templates:
+            Achievement.objects.get_or_create(**t)
+        print("Achievement templates seeding complete.")
         self.stdout.write(self.style.SUCCESS("✅ Seeding completed."))

@@ -6,7 +6,7 @@ from apps.tournaments.models import Match
 from apps.tournaments.serializers import MatchSerializer
 
 def generate_eliminations(league_teams_data):
-    shuffle(league_teams_data)  # Shuffle teams randomly
+    shuffle(league_teams_data)
 
     matches = []
     counter = 1
@@ -93,7 +93,7 @@ def progress_round(tournament):
                 continue
 
             match_data = {
-                'tournament': tournament,  # serializer needs IDs
+                'tournament': tournament,
                 'round_number': max_round + 1,
                 'match_number': next_match_number,
                 'home_team': home_team,

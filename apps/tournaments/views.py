@@ -12,6 +12,7 @@ from apps.tournaments.models import Tournament, Team, TeamMember, Match
 from apps.tournaments.serializers import TournamentSerializer, TeamSerializer, TeamMemberSerializer, MatchSerializer, \
     MatchUpdateSerializer
 from apps.utils.custom_permissions import HasValidCeleryAuth
+from apps.utils.db_queries import collect_first_timer_teams
 from apps.utils.generate_league import generate_unique_league_matches
 from apps.utils.generate_elimination import generate_eliminations
 from apps.utils.initialize_standings import initialize_standings_for_league
@@ -43,14 +44,13 @@ class TournamentDetailsView(APIView):
     """ View For User To See Tournaments """
 
     serializer_class = TournamentSerializer
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request, slug, *args, **kwargs) -> Response:
         """ GET Method FFor User To See Tournaments """
 
         current_tournament = Tournament.objects.filter(slug=slug).first()
         serializer = TournamentSerializer(instance=current_tournament)
-
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, slug, *args, **kwargs) -> Response:
@@ -74,7 +74,6 @@ class TournamentDetailsView(APIView):
 class TeamCreationView(APIView):
     """ View For Creating Team With A Leader """
     serializer_class = TeamSerializer
-
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, tournament, *args, **kwargs) -> Response:
@@ -95,7 +94,6 @@ class TeamCreationView(APIView):
 class TeamMembersAdditionView(APIView):
     """ View For Adding Member In To The Team """
     serializer_class = TeamMemberSerializer
-
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, team_id, *args, **kwargs) -> Response:

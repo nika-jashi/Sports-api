@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.validators import MinLengthValidator
@@ -10,7 +12,7 @@ from apps.utils.custom_validators import (does_not_contains_whitespace,
                                           contains_digits,
                                           contains_lowercase)
 from apps.utils.db_queries import check_if_user_is_active
-
+from core.mongo_client import mongo
 
 class UserSerializer(serializers.ModelSerializer):
     """ Serializer For The User Object """
@@ -170,3 +172,19 @@ class PasswordResetConfirmSerializer(serializers.Serializer):  # noqa
         instance.set_password(validated_data.get('new_password'))
         instance.save()
         return instance
+
+
+class AddAchievementToUserSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+    achievement_id = serializers.CharField()
+
+    def create(self, validated_data):
+        print("we are in create")
+        doc = {
+            "user_id": validated_data["user_id"],
+            "achievement_id": validated_data["achievement_id"],
+            "date_achieved": datetime.now(),
+        }
+
+        result = mongo("achievements").insert_one(doc)
+        return {"_id": str(result.inserted_id), **doc}

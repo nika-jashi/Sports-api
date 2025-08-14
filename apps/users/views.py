@@ -17,7 +17,7 @@ from apps.users.serializers import (
     UserChangePasswordSerializer,
     PasswordResetRequestEmailSerializer,
     OTPValidationSerializer,
-    PasswordResetConfirmSerializer)
+    PasswordResetConfirmSerializer, AddAchievementToUserSerializer)
 from apps.utils.db_queries import check_user_exists
 from apps.utils.email_sender import SendEmail
 from apps.utils.email_html_templates import email_verify, password_reset
@@ -111,7 +111,7 @@ class UserChangePasswordView(APIView):
     serializer_class = UserChangePasswordSerializer
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request) -> Response:
+    def post(self, request, *args, **kwargs) -> Response:
         current_user = request.user
         serializer = self.serializer_class(
             instance=current_user, data=request.data, context={"request": request}
@@ -128,7 +128,7 @@ class PasswordResetRequestEmailView(APIView):
     """View for user to request password reset by email verification, when user is not authenticated"""
     serializer_class = PasswordResetRequestEmailSerializer
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs) -> Response:
         data = request.data
         otp = OTP_generator(password_reset=True)
 
@@ -151,7 +151,7 @@ class EmailVerifyView(APIView):
        this view also generated JWT token for changing password afterward """
     serializer_class = OTPValidationSerializer
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs) -> Response:
         data: dict = {}
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid(raise_exception=True):
@@ -181,10 +181,21 @@ class PasswordResetConfirmView(APIView):
     queryset = get_user_model().objects.get_queryset().all()
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs) -> Response:
         user = request.user
         serializer = PasswordResetConfirmSerializer(instance=user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
         return Response({"detail": "You successfully changed your password!"}, status=status.HTTP_200_OK)
+
+@extend_schema(tags=["Achievements"])
+class AddAchievementToUserView(APIView):
+    serializer_class = AddAchievementToUserSerializer
+
+    def post(self, request, *args, **kwargs) -> Response:
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(status=status.HTTP_201_CREATED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)

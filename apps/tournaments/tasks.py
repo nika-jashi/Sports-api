@@ -4,6 +4,7 @@ import requests
 import datetime
 
 from apps.tournaments.models import Tournament
+from apps.utils.db_queries import collect_first_timer_teams
 from core.celery import app
 from django.core.cache import cache
 from core.settings import BASE_URL
@@ -28,6 +29,8 @@ def generate_tournaments():
 
         if response.status_code == 201:
             results.append(f"OK: {tournament.slug}")
+            teams_for_first_time_achievement = collect_first_timer_teams(tournament)
+
         else:
             results.append(f"FAIL: {tournament.slug} ({response.status_code})")
 

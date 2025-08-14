@@ -1,7 +1,7 @@
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
-from apps.tournaments.models import Match
+from apps.tournaments.models import Match, Team
 from apps.utils.generate_elimination import progress_round
 from core.mongo_client import mongo
 
@@ -22,7 +22,7 @@ def update_league_matches(sender, instance, **kwargs):
 
     if (old_instance.home_score != instance.home_score or
             old_instance.away_score != instance.away_score):
-        standings = mongo("standings").find_one({"tournament_id": old_instance.tournament.id})
+        standings = mongo("sports_api").find_one({"tournament_id": old_instance.tournament.id})
 
         if instance.home_score > instance.away_score:
             for standing in standings['standings']:
@@ -62,7 +62,8 @@ def auto_progress_bracket(sender, instance, **kwargs):
     If all matches in the current stage are completed → create next round matches.
     """
     tournament = instance.tournament
-
+    if tournament.format == 'league':
+        return
     round_matches = Match.objects.filter(
         tournament=tournament,
         round_number=instance.round_number
